@@ -1,0 +1,44 @@
+version: '2'
+services:
+
+  ghost:
+    container_name: ghost
+    image: ghost:latest
+    restart: always
+    depends_on:
+      - db
+    environment:
+      url: https://cight.co
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: root
+      database__connection__password: ghost_cight_co_database_root_password
+      database__connection__database: ghost
+    volumes:
+      - /mnt/data.cight.co/appdata/ghost/content:/var/lib/ghost/content
+
+  db:
+    container_name: db
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ghost_cight_co_database_root_password
+    volumes:
+      - /mnt/data.cight.co/appdata/mysql:/var/lib/mysql
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - ghost
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+#       - /etc/letsencrypt/:/etc/letsencrypt/
+       - /etc/cloudflare/:/etc/cloudflare/
+       - /mnt/data.cight.co/appdata/nginx/html:/usr/share/nginx/html
+       - /mnt/data.cight.co/appdata/nginx/conf.d/:/etc/nginx/conf.d/
